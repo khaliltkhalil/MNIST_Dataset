@@ -1,3 +1,7 @@
+# MNIST Dataset Classification Using Convnet
+# 2 Convnet with one fully connected layer
+
+
 import math
 import numpy as np
 import tensorflow as tf
@@ -60,13 +64,9 @@ def initialize_parameters():
 
     W1 = tf.get_variable("W1",[3,3,1,16],tf.float32,tf.contrib.layers.xavier_initializer())
     W2 = tf.get_variable("W2", [3, 3, 16, 32], tf.float32, tf.contrib.layers.xavier_initializer())
-    # W3 = tf.get_variable("W3",[3,3,16,32],tf.float32,tf.contrib.layers.xavier_initializer())
-    # W4 = tf.get_variable("W4", [3, 3, 32, 32], tf.float32, tf.contrib.layers.xavier_initializer())
+    
     parameters = {"W1": W1,
-                  "W2": W2,
-                  # "W3": W3,
-                  # "W4": W4
-                  }
+                  "W2": W2}
 
     return parameters
 
@@ -74,9 +74,7 @@ def forward_prop(X, parameters,is_training):
 
     W1 = parameters["W1"]
     W2 = parameters["W2"]
-    # W3 = parameters["W3"]
-    # W4 = parameters["W4"]
-
+    
     Z1 = tf.nn.conv2d(X,W1,[1,1,1,1],"SAME")
     Z1_hat = tf.layers.batch_normalization(Z1,axis=-1,training=is_training)
     A1 = tf.nn.relu(Z1_hat)
@@ -85,20 +83,15 @@ def forward_prop(X, parameters,is_training):
     A2 = tf.nn.relu(Z2_hat)
     P2 = tf.nn.max_pool(A2,[1,4,4,1],[1,2,2,1],"SAME")
 
-    # Z3 = tf.nn.conv2d(P2,W3,[1,1,1,1],"SAME")
-    # A3 = tf.nn.relu(Z3)
-    # Z4 = tf.nn.conv2d(A3, W4, [1, 1, 1, 1], "SAME")
-    # A4 = tf.nn.relu(Z4)
-    # P4 = tf.nn.max_pool(A4,[1,4,4,1],[1,2,2,1],"SAME")
-
+    
     P = tf.contrib.layers.flatten(P2)
     Pd = tf.layers.dropout(P,rate=0.5,training= is_training)
     Z5 = tf.contrib.layers.fully_connected(Pd,10, activation_fn =None)
     return Z5
 
-def compute_cost(Z3, Y):
+def compute_cost(Z5, Y):
 
-    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y,logits=Z3))
+    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y,logits=Z5))
 
     return cost
 
@@ -164,11 +157,7 @@ def model(X_train, Y_train, X_test, Y_test,learning_rate=0.001, num_epoch=200,mi
             i += 1
         print("test accuracy", accuracy_score(Y_test, y_pred_test))
 
-        # print("train accuracy",accuracy_score(Y_train,y_pred_train.T))
-        #
-        # y_pred_test = session.run(tf.argmax(Z3, axis=1), feed_dict={X: X_test, is_training: False})
-        # print("test accuracy", accuracy_score(Y_test, y_pred_test.T))
-
+        
 digits = pd.read_csv("train.csv")
 data = digits.values
 X = data[:,1:]
